@@ -162,9 +162,22 @@ cython_debug/
 #Local file Jeppe
 jeppe.py
 JakobtestFile.py
+JakobTestFileStationaer.py
 gustav.py
 .vscode/settings.json
 station00LSTM.pkl
 my_model.keras
 Models*.pkl
 my_model.keras
+Tuner_1/
+Tuner_2/
+Tuner_3/
+Tuner/
+CNN_1.keras
+CNN_2.keras
+test_LSTM.py
+CNN_test.keras
+CNN_test2.keras
+station02_0_padded.pkl
+station01_0_padded.pkl
+CNN_claudia.py

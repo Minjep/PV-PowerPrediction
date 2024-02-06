@@ -336,5 +336,121 @@ def plotAvgPowerVsCap():
     plt.title('Scatter Plot with mean power produced vs capacity')
     return  
 
+def testJeppesLSTM():
+    import os, sys
+    print(f"Setting syspath to include base folder: {os.path.dirname(os.path.dirname(os.path.abspath(__file__)))}") 
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from PV_PredictLib import LSTM as ls
+    # from PV_PredictLib import fileLoader as fl
+    import numpy as np
+    import pandas as pd
+    from sklearn.preprocessing import MinMaxScaler
+    import keras
+    from matplotlib import pyplot as plt
+    from sklearn.metrics import r2_score
+    # import math
+    from keras.models import Sequential
+    from keras.layers import LSTM, Dense
+    # from sklearn.metrics import mean_squared_error as mse
+    # from sklearn.metrics import accuracy_score
 
+    data00=ls.load_data_lmd_flatten(ls.load_data_arrayofdays(0),historyOfLMD=1/4)
+    data00=data00[1:-1]
+    data00=pd.concat(data00)
+    data00=data00.dropna()
+    [features00,featuresTest00,power00,powerTest00]=ls.splitContinuousData(data00)
 
+    # Convert features00 DataFrame to NumPy array
+    X_train = features00.values
+    n_samples_train, n_features = X_train.shape
+
+    # Reshape the input for LSTM (assuming a sequence length of 1)
+    X_train = X_train.reshape((n_samples_train, 1, n_features))
+
+    # Scale the training data using Min-Max scaling
+    scaler_X = MinMaxScaler()
+    X_train_scaled = scaler_X.fit_transform(X_train.reshape(-1, n_features)).reshape(X_train.shape)
+
+    # Assuming power00 is a DataFrame with shape (26650, 1)
+    # power00 = ...
+
+    # Convert power00 DataFrame to NumPy array
+    y_train = power00.values
+
+    # Scale the target variable using Min-Max scaling
+    scaler_y = MinMaxScaler()
+    y_train_scaled = scaler_y.fit_transform(y_train.reshape(-1, 1)).reshape(y_train.shape)
+
+    # Create an LSTM model with two LSTM layers
+    model = Sequential()
+    model.add(LSTM(250, input_shape=(X_train.shape[1], X_train.shape[2]), return_sequences=True))  # First LSTM layer
+    model.add(LSTM(250))  # Second LSTM layer
+    model.add(Dense(1, activation='linear'))  # Assuming a single output, adjust as needed
+
+    # Compile the model
+    model.compile(optimizer='adam', loss='mean_squared_error')  # Adjust loss based on your task
+
+    # Train the model
+    model.fit(X_train_scaled, y_train_scaled, epochs=10, batch_size=32,validation_split=0.1)
+
+    # Now, let's make predictions on new data (featuresTest00)
+
+    # Convert featuresTest00 DataFrame to NumPy array
+    X_test = featuresTest00.values
+    n_samples_test = X_test.shape[0]
+
+    # Reshape the input for LSTM (assuming a sequence length of 1)
+    X_test = X_test.reshape((n_samples_test, 1, n_features))
+
+    # Scale the test data using the same scaler used for training data
+    X_test_scaled = scaler_X.transform(X_test.reshape(-1, n_features)).reshape(X_test.shape)
+
+    # Make predictions on the scaled test data
+    predictions_scaled = model.predict(X_test_scaled)
+
+    # Inverse transform the scaled predictions to get the original scale
+    predictions = scaler_y.inverse_transform(predictions_scaled)
+
+    plt.figure()
+    plt.plot(predictions)
+    plt.plot(powerTest00.values)
+    plt.show() 
+
+    predictions[powerTest00.values == 0] = 0
+
+    r2=r2_score(powerTest00, predictions)
+
+def windDirectionPowerApprox(data):
+    # Extract columns
+    power = data['power']
+    wind_direction_lmd = data['lmd_winddirection']
+    wind_direction_nwp = data['nwp_winddirection']
+
+    # Convert wind_direction to radians
+    wind_direction_rad_lmd = np.radians(wind_direction_lmd)
+    wind_direction_rad_nwp = np.radians(wind_direction_nwp)
+
+    # Create matrix A
+    A_lmd = np.vstack((np.sin(wind_direction_rad_lmd), np.cos(wind_direction_rad_lmd))).T
+    A_nwp = np.vstack((np.sin(wind_direction_rad_nwp), np.cos(wind_direction_rad_nwp))).T
+
+    # Calculate conditioning number of A
+    conditioning_number_lmd = np.linalg.cond(A_lmd)
+    conditioning_number_nwp = np.linalg.cond(A_nwp)
+
+    # Calculate coefficients
+    x_n_lmd = np.linalg.inv(A_lmd.T @ A_lmd) @ A_lmd.T @ power
+    x_n_nwp = np.linalg.inv(A_nwp.T @ A_nwp) @ A_nwp.T @ power
+
+    # Calculate regression
+    Reg_lmd = A_lmd @ x_n_lmd
+    Reg_nwp = A_nwp @ x_n_nwp
+
+    # Calculate correlation coefficient
+    correlation_lmd = np.corrcoef(Reg_lmd, power)[0, 1]
+    correlation_nwp = np.corrcoef(Reg_nwp, power)[0, 1]
+
+    print("Conditioning number lmd:", conditioning_number_lmd,'; nwp:',conditioning_number_nwp)
+    print("Coefficients (a1, a2) for lmd:", x_n_lmd,'; for nwp:',x_n_nwp)
+    print("Correlation coefficient lmd:", correlation_lmd,'; for nwp:',correlation_nwp)
+    return Reg_lmd,Reg_nwp

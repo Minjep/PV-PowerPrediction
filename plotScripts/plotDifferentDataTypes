@@ -1,0 +1,94 @@
+from PV_PredictLib import LSTM
+from matplotlib import pyplot as plt
+from PV_PredictLib import fileLoader as fl
+from sklearn.preprocessing import MinMaxScaler
+import numpy as np
+# # #lmd_total,lmd_diffuse,lmd_temp,lmd_windspeed
+# # #nwp_global,nwp_direct,nwp,temp,nwp_humidity,nwp_windspeed
+
+###########################################################
+trainX,trainY,testX,testY=LSTM.load_LSTM_zero_padded('station01_o_padded.pkl','station01')
+lmd=trainX[:,:4]
+trainX=trainX[:,4:]
+trainX=trainX.reshape(trainX.shape[0],96,5)
+m=100
+n=400
+plt.figure()
+plt.plot(trainX[m:n,1,0],label='nwp_globalirrad')
+plt.plot(trainX[m:n,1,1],label='nwp_directirrad')
+plt.plot(trainX[m:n,1,2],label='nwp_temperature')
+plt.plot(trainX[m:n,1,3],label='nwp_humidity')
+plt.plot(trainX[m:n,1,4],label='nwp_windspeed')
+plt.legend(loc='upper right')
+plt.xlabel('Sample number')
+plt.ylabel('Normalized value')
+plt.title('Plot of zero_padded nwp_data for station 01')
+plt.tight_layout()
+plt.show()
+
+##################################################
+# data=fl.loadFile('station01.csv',PKL=False)
+# scaler = MinMaxScaler()
+# k=['nwp_globalirrad','nwp_directirrad','nwp_temperature','nwp_windspeed','nwp_humidity']
+# trainX=data[k]
+# trainX = scaler.fit_transform(trainX)
+# m=100
+# n=400
+# plt.figure()
+# plt.plot(trainX[m:n,0],label='nwp_globalirrad')
+# plt.plot(trainX[m:n,1],label='nwp_directirrad')
+# plt.plot(trainX[m:n,2],label='nwp_temperature')
+# plt.plot(trainX[m:n,3],label='nwp_windspeed')
+# plt.plot(trainX[m:n,4],label='nwp_humidity')
+# plt.legend(loc='upper right')
+# plt.xlabel('Sample number')
+# plt.ylabel('Normalized value')
+# plt.title('Plot of normalized nwp_data for station 01')
+# plt.tight_layout()
+# plt.show()
+
+
+####################################################
+# trainX,trainY,testX,testY=LSTM.load_LSTM_zero_padded('station01_o_padded.pkl','station01')
+# lmd=trainX[:,:4]
+# trainX=trainX[:,4:]
+# trainX=trainX.reshape(trainX.shape[0],96,5)
+# trainX=trainX[:,1,:]
+# nonzero_rows = trainX[:, 1] != 0
+# trainX_filtered = trainX[nonzero_rows]
+
+# # Define the ranges for the two subplots
+# m1, n1 = 0, 300
+# m2, n2 = int(len(trainX_filtered)/2), int(len(trainX_filtered)/2+300)  # Adjust these values as needed
+
+# # Create the first subplot
+# plt.figure(figsize=(12, 6))
+
+# plt.subplot(2, 1, 1)
+# plt.plot(trainX_filtered[m1:n1, 0], label='nwp_globalirrad')
+# # plt.plot(trainX_filtered[m1:n1, 1], label='nwp_directirrad')
+# # plt.plot(trainX_filtered[m1:n1, 2], label='nwp_temperature')
+# # plt.plot(trainX_filtered[m1:n1, 3], label='nwp_humidity')
+# # plt.plot(trainX_filtered[m1:n1, 3], label='nwp_windspeed')
+# plt.xlabel('Sample number')
+# plt.ylabel('Normalized value')
+# plt.title('Plot of normalized day-time nwp_data for station 01 summer period')
+
+# # Create the second subplot
+# plt.subplot(2, 1, 2)
+# plt.plot(trainX_filtered[m2:n2, 0], label='nwp_globalirrad')
+# # plt.plot(trainX_filtered[m2:n2, 1], label='nwp_directirrad')
+# # plt.plot(trainX_filtered[m2:n2, 2], label='nwp_temperature')
+# # plt.plot(trainX_filtered[m2:n2, 3], label='nwp_humidity')
+# # plt.plot(trainX_filtered[m2:n2, 4], label='nwp_windspeed')
+# plt.xlabel('Sample number')
+# plt.ylabel('Normalized value')
+# plt.title('Plot of normalized day-time nwp_data for station 01 winter period')
+
+# # Adjust spacing between subplots
+# plt.subplots_adjust(hspace=0.4)
+
+# # Place a single legend between the subplots
+# plt.tight_layout()
+# plt.legend(loc='upper center', bbox_to_anchor=(0.02, 1.4), title='Variables')
+# plt.show()

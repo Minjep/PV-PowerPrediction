@@ -12,6 +12,11 @@ station00=fileLoader.loadFile('station00.csv')
 
 correlations=pf.windDirectionCorrelation(station00)
 
-
+plt.figure()
+bar_width = 0.5
+plt.bar(['lmd','nwp'], correlations, bar_width, color=['blue', 'orange'])
+plt.xlabel('Bars')
+plt.ylabel('Height')
+plt.title('Two Bars Plot Example')
 plt.tight_layout()
 plt.show()
