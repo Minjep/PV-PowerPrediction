@@ -35,7 +35,7 @@ def plotColumnScatter(ax :plt.axes ,data : pd.DataFrame,colloum1Name : str,collo
     ax.set_xlabel(colloum1Name)
     ax.set_ylabel(colloum2Name)
     #set legend location to upper right
-    ax.legend(loc='upper right')
+    ax.legend(loc='upper right',fontsize=12)
     return ax
 # plot columnScatter with two y axis's
 def plotColumnScatter2Y(ax :plt.axes ,data : pd.DataFrame,colloumXName : str,colloumY1Name : str,colloumY2Name : str,label: str ,scaleTicks : float= 2):
